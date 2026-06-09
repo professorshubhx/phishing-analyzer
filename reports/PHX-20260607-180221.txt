@@ -1,0 +1,53 @@
+═════════════════════════════════════════════════════════════════
+  PHISHING EMAIL ANALYSIS REPORT
+  Report ID : PHX-20260607-180221
+  Generated : 2026-06-07T18:02:21.705750Z
+═════════════════════════════════════════════════════════════════
+
+  ▶ VERDICT: LIKELY_PHISHING  |  THREAT SCORE: 70/100
+
+═════════════════════════════════════════════════════════════════
+
+[EMAIL METADATA]
+  Subject        : Individuelle Prognose für schnellen Gewichtsverlust ✅🎊
+  From           : Magisches Schlankheitssystem🤸‍♀️✅ <otto-newsletter@newsletter.otto.de>
+  Reply-To       : reply_to@winner-win.art
+  Date           : Thu, 03 Aug 2023 04:14:33 +0200
+  Message-ID     : <qAlAcXa.60981.504+=phishing@pot@winner-win.art>
+  X-Mailer       : 
+  Orig IP        : 
+
+[AUTHENTICATION RESULTS]
+  SPF   : FAIL
+  DKIM  : NONE
+  DMARC : FAIL
+
+[FINDINGS]
+  [01] [HIGH    ] [Authentication ] SPF check FAIL — sender domain may be spoofed
+  [02] [HIGH    ] [Authentication ] DKIM NONE — email integrity not verified
+  [03] [MEDIUM  ] [Authentication ] DMARC FAIL — policy not enforced
+  [04] [HIGH    ] [Header Anomaly ] Reply-To mismatch: sender=otto-newsletter@newsletter.otto.de but replies go to reply_to@winner-win.art
+  [05] [MEDIUM  ] [URL            ] [bsq2.firiri.shop] Non-HTTPS URL
+  [06] [MEDIUM  ] [URL            ] [bsq2.firiri.shop] Non-HTTPS URL
+  [07] [MEDIUM  ] [URL            ] [t.co] URL shortener detected: t.co
+
+[EXTRACTED IOCs]
+  URLs    : 3
+  IPs     : 0
+  Domains : 0
+  Emails  : 0
+    → http://bsq2.firiri.shop/cGNjTnA0S1BmODB4K2U0U1NsaFhKaFJwR2xWM1lRMW45SHZaSlVwRHd4WVJ3M3pCMllBUjQrcWRmR2Q2bzZTdVZmSzk0VTNHKzlpVENPQlhNd0U2QVE9PQ__
+    → http://bsq2.firiri.shop/VXNGcDVySlQyWWJ6N2RBRFROalRnU1lRZklJU1g1UVZZMjhoWFJsOUEyRzNPUkh3andtcUU0V2NpTmVUTFcxemtlTGRFS1JjRHZWcTR2TXd3Rk9Bd2c9PQ__
+    → https://t.co/eYVtqVunRC
+
+[MITRE ATT&CK MAPPING]
+  T1566.001 — Phishing: Spearphishing Attachment
+    https://attack.mitre.org/techniques/T1566/001
+  T1078 — Valid Accounts (Identity Spoofing)
+    https://attack.mitre.org/techniques/T1078
+  T1566.002 — Phishing: Spearphishing Link
+    https://attack.mitre.org/techniques/T1566/002
+
+═════════════════════════════════════════════════════════════════
+  END OF REPORT — Phishing Email Analyzer v2.0
+═════════════════════════════════════════════════════════════════

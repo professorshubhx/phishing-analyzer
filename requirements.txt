@@ -1,0 +1,10 @@
+flask==3.0.0
+requests==2.31.0
+dnspython==2.4.2
+python-magic==0.4.27
+reportlab==4.0.7
+whois==0.9.27
+tldextract==5.1.1
+colorama==0.4.6
+rich==13.7.0
+pyyaml==6.0.1

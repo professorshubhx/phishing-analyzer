@@ -1,0 +1,31 @@
+From: PayPal Security <security-alert@paypa1-support.tk>
+To: victim@gmail.com
+Subject: URGENT: Your PayPal Account Has Been Suspended - Verify Now
+Date: Mon, 06 Jan 2025 10:22:34 +0000
+Message-ID: <20250106102234.xyz123@paypa1-support.tk>
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+X-Mailer: PHPMailer 5.2.9
+X-Originating-IP: 185.220.101.55
+Received-SPF: fail (domain of paypa1-support.tk does not designate 185.220.101.55 as permitted sender)
+Authentication-Results: mx.google.com; spf=fail; dkim=none; dmarc=fail
+Reply-To: collect-data@evil-phish.xyz
+
+<!DOCTYPE html>
+<html>
+<body>
+<p>Dear Valued Customer,</p>
+<p><strong>URGENT ACTION REQUIRED:</strong> Your PayPal account has been suspended due to unusual activity. 
+You must verify your account immediately or it will be permanently closed within 24 hours.</p>
+
+<p>Click here to verify: <a href="http://paypal-secure-verify.tk/login?session=abc123">http://paypal-secure-verify.tk/login</a></p>
+<p>Alternative link: <a href="http://bit.ly/3xPayPalVerify">Verify Account Now</a></p>
+<p>Direct IP: <a href="http://185.220.101.55/paypal/verify">Click here</a></p>
+
+<p>Please provide your username, password, credit card number, CVV, and social security number to complete verification.</p>
+
+<p>Act now — this offer expires soon! Account suspended. Validate your information immediately.</p>
+
+<p>PayPal Security Team</p>
+</body>
+</html>

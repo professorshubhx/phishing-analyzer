@@ -1,0 +1,37 @@
+═════════════════════════════════════════════════════════════════
+  PHISHING EMAIL ANALYSIS REPORT
+  Report ID : PHX-20260607-180133
+  Generated : 2026-06-07T18:01:33.712088Z
+═════════════════════════════════════════════════════════════════
+
+  ▶ VERDICT: CLEAN  |  THREAT SCORE: 0/100
+
+═════════════════════════════════════════════════════════════════
+
+[EMAIL METADATA]
+  Subject        : Liberação de IRPF - 6NwlyfzWcsNerv0
+  From           : [BB] - Seu saldo foi liberado - Código: 11084339647130851921 <prestonconstance587@gmail.com>
+  Reply-To       : 
+  Date           : Wed, 26 Jul 2023 17:59:01 +0000
+  Message-ID     : <fe5a59263be048e994229d8d1b31df82@gmail.com>
+  X-Mailer       : 
+  Orig IP        : 
+
+[AUTHENTICATION RESULTS]
+  SPF   : PASS
+  DKIM  : PASS
+  DMARC : PASS
+
+[FINDINGS]
+
+[EXTRACTED IOCs]
+  URLs    : 0
+  IPs     : 0
+  Domains : 1
+  Emails  : 1
+
+[MITRE ATT&CK MAPPING]
+
+═════════════════════════════════════════════════════════════════
+  END OF REPORT — Phishing Email Analyzer v2.0
+═════════════════════════════════════════════════════════════════

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhishAnalyzer — SOC Triage Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0a0c10;
+    --surface:  #111318;
+    --card:     #161a22;
+    --border:   #1e2433;
+    --accent:   #00d4ff;
+    --accent2:  #ff4b6e;
+    --green:    #00ff87;
+    --amber:    #ffb800;
+    --red:      #ff4b6e;
+    --text:     #e8ecf4;
+    --muted:    #6b7897;
+    --mono:     'Share Tech Mono', monospace;
+    --sans:     'DM Sans', sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; }
+
+  /* ── Scanline overlay ── */
+  body::before {
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:999;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,212,255,0.015) 2px, rgba(0,212,255,0.015) 4px);
+  }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.2rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface);
+  }
+  .logo {
+    font-family: var(--mono);
+    font-size: 1.15rem;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+  }
+  .logo span { color: var(--accent2); }
+  .status-bar {
+    display: flex; gap: 1.5rem; align-items: center;
+    font-family: var(--mono); font-size: 0.72rem; color: var(--muted);
+  }
+  .dot { width:7px; height:7px; border-radius:50%; background:var(--green); display:inline-block; margin-right:5px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* ── Layout ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+  /* ── Upload Panel ── */
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.8rem;
+  }
+  .panel-title {
+    font-family: var(--mono); font-size: 0.75rem;
+    color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 1.4rem; padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 4px;
+    padding: 3rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 1.2rem;
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.04);
+  }
+  .drop-zone input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  }
+  .drop-icon {
+    font-family: var(--mono); font-size: 2.5rem; color: var(--muted);
+    margin-bottom: 0.8rem;
+  }
+  .drop-label { font-size: 0.9rem; color: var(--muted); }
+  .drop-label strong { color: var(--accent); font-weight: 500; }
+  .file-types { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); margin-top: 0.4rem; }
+
+  .options { display: flex; gap: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+  .toggle-opt {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-size: 0.82rem; color: var(--muted); cursor: pointer;
+  }
+  .toggle-opt input { accent-color: var(--accent); }
+
+  .btn-analyze {
+    width: 100%; padding: 0.9rem;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: var(--mono); font-size: 0.9rem; letter-spacing: 0.08em;
+    cursor: pointer; border-radius: 2px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .btn-analyze:hover {
+    background: var(--accent); color: var(--bg);
+  }
+
+  /* ── Stats Bar ── */
+  .stats-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+    background: var(--border); margin-bottom: 1.5rem;
+    border: 1px solid var(--border); border-radius: 4px; overflow: hidden;
+  }
+  .stat {
+    background: var(--card); padding: 1rem 1.2rem; text-align: center;
+  }
+  .stat-val { font-family: var(--mono); font-size: 1.6rem; font-weight: 600; }
+  .stat-lbl { font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-val.red   { color: var(--red); }
+  .stat-val.amber { color: var(--amber); }
+  .stat-val.green { color: var(--green); }
+  .stat-val.cyan  { color: var(--accent); }
+
+  /* ── Recent Reports Table ── */
+  .reports-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+  .reports-table th {
+    text-align: left; padding: 0.6rem 0.8rem;
+    font-family: var(--mono); font-size: 0.65rem;
+    color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .reports-table td {
+    padding: 0.7rem 0.8rem;
+    border-bottom: 1px solid rgba(30,36,51,0.5);
+    vertical-align: middle;
+  }
+  .reports-table tr:hover td { background: rgba(0,212,255,0.02); }
+  .reports-table a { color: var(--text); text-decoration: none; }
+  .reports-table a:hover { color: var(--accent); }
+
+  .verdict-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 2px;
+    font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .v-PHISHING        { background: rgba(255,75,110,0.15); color: var(--red); border: 1px solid rgba(255,75,110,0.3); }
+  .v-LIKELY_PHISHING { background: rgba(255,75,110,0.08); color: #ff8a9f; border: 1px solid rgba(255,75,110,0.2); }
+  .v-SUSPICIOUS      { background: rgba(255,184,0,0.1); color: var(--amber); border: 1px solid rgba(255,184,0,0.25); }
+  .v-CLEAN           { background: rgba(0,255,135,0.08); color: var(--green); border: 1px solid rgba(0,255,135,0.2); }
+
+  .score-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .score-bar-bg { flex: 1; height: 4px; background: var(--border); border-radius: 2px; }
+  .score-bar-fill { height: 4px; border-radius: 2px; }
+  .score-num { font-family: var(--mono); font-size: 0.72rem; width: 28px; text-align: right; }
+
+  /* ── Info box ── */
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-top: 1rem; }
+  .info-item { padding: 0.8rem; background: var(--surface); border-radius: 3px; border: 1px solid var(--border); }
+  .info-label { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.3rem; }
+  .info-val { font-size: 0.8rem; color: var(--text); }
+
+  /* ── Flash messages ── */
+  .flash { padding: 0.8rem 1.2rem; margin-bottom: 1rem; border-radius: 3px; font-size: 0.85rem; border-left: 3px solid; }
+  .flash.error { background: rgba(255,75,110,0.08); border-color: var(--red); color: #ff8a9f; }
+
+  @media(max-width:700px) {
+    .grid { grid-template-columns: 1fr; }
+    .stats-bar { grid-template-columns: repeat(2,1fr); }
+    .info-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">PHISH<span>ANALYZER</span> <span style="color:var(--muted);font-size:0.7rem;">v2.0</span></div>
+  <div class="status-bar">
+    <span><span class="dot"></span>SYSTEM ONLINE</span>
+    <span>SOC TRIAGE TOOL</span>
+    <span style="color:var(--accent);">{{ reports|length }} REPORTS</span>
+  </div>
+</header>
+
+<div class="container">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="flash {{ cat }}">⚠ {{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- Stats Bar -->
+  {% set phishing_count = reports | selectattr('verdict', 'equalto', 'PHISHING') | list | length %}
+  {% set suspicious_count = reports | selectattr('verdict', 'in', ['SUSPICIOUS', 'LIKELY_PHISHING']) | list | length %}
+  {% set clean_count = reports | selectattr('verdict', 'equalto', 'CLEAN') | list | length %}
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-val cyan">{{ reports|length }}</div><div class="stat-lbl">Total Analyzed</div></div>
+    <div class="stat"><div class="stat-val red">{{ phishing_count }}</div><div class="stat-lbl">Phishing</div></div>
+    <div class="stat"><div class="stat-val amber">{{ suspicious_count }}</div><div class="stat-lbl">Suspicious</div></div>
+    <div class="stat"><div class="stat-val green">{{ clean_count }}</div><div class="stat-lbl">Clean</div></div>
+  </div>
+
+  <div class="grid">
+    <!-- Upload Panel -->
+    <div class="panel">
+      <div class="panel-title">▶ ANALYZE EMAIL</div>
+      <form method="POST" action="/analyze" enctype="multipart/form-data">
+        <div class="drop-zone" id="dropZone">
+          <input type="file" name="email_file" id="fileInput" accept=".eml,.txt,.msg">
+          <div class="drop-icon">⬡</div>
+          <div class="drop-label">Drop <strong>.eml file</strong> here or click to browse</div>
+          <div class="file-types">SUPPORTED: .eml / .msg / .txt</div>
+          <div id="fileName" style="margin-top:0.6rem;font-family:var(--mono);font-size:0.72rem;color:var(--accent);display:none;"></div>
+        </div>
+        <div class="options">
+          <label class="toggle-opt">
+            <input type="checkbox" name="use_vt" id="vtCheck">
+            Enable VirusTotal API
+          </label>
+        </div>
+        <button type="submit" class="btn-analyze">⚡ RUN ANALYSIS</button>
+      </form>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">SPF / DKIM / DMARC</div>
+          <div class="info-val">Auth header checks</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">URL Analysis</div>
+          <div class="info-val">Shorteners, IPs, VT lookup</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">IOC Extraction</div>
+          <div class="info-val">URLs, IPs, emails, hashes</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">MITRE ATT&CK</div>
+          <div class="info-val">Technique mapping</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Reports Panel -->
+    <div class="panel">
+      <div class="panel-title">▶ RECENT REPORTS</div>
+      {% if reports %}
+      <table class="reports-table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Verdict</th>
+            <th>Score</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in reports %}
+          <tr>
+            <td><a href="/report/{{ r.id }}">{{ r.subject[:30] }}{% if r.subject|length > 30 %}…{% endif %}</a></td>
+            <td><span class="verdict-badge v-{{ r.verdict }}">{{ r.verdict }}</span></td>
+            <td>
+              <div class="score-bar-wrap">
+                <div class="score-bar-bg">
+                  <div class="score-bar-fill" style="width:{{ r.score }}%;background:{% if r.score > 74 %}var(--red){% elif r.score > 50 %}#ff8a9f{% elif r.score > 20 %}var(--amber){% else %}var(--green){% endif %}"></div>
+                </div>
+                <span class="score-num" style="color:{% if r.score > 50 %}var(--red){% elif r.score > 20 %}var(--amber){% else %}var(--green){% endif %}">{{ r.score }}</span>
+              </div>
+            </td>
+            <td style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);">{{ r.date }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div style="text-align:center;padding:3rem 0;color:var(--muted);font-family:var(--mono);font-size:0.8rem;">
+        NO REPORTS YET<br><span style="font-size:0.65rem;margin-top:0.5rem;display:block;">Upload an .eml file to begin analysis</span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+  const dz = document.getElementById('dropZone');
+  const fi = document.getElementById('fileInput');
+  const fn = document.getElementById('fileName');
+  fi.addEventListener('change', () => {
+    if (fi.files[0]) { fn.textContent = '✔ ' + fi.files[0].name; fn.style.display='block'; }
+  });
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f) { const dt = new DataTransfer(); dt.items.add(f); fi.files = dt.files; fn.textContent='✔ '+f.name; fn.style.display='block'; }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Report {{ report.report_id }} — PhishAnalyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0c10; --surface:#111318; --card:#161a22; --border:#1e2433;
+    --accent:#00d4ff; --accent2:#ff4b6e; --green:#00ff87; --amber:#ffb800;
+    --red:#ff4b6e; --text:#e8ecf4; --muted:#6b7897;
+    --mono:'Share Tech Mono',monospace; --sans:'DM Sans',sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); }
+  body::before {
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:999;
+    background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,0.012) 2px,rgba(0,212,255,0.012) 4px);
+  }
+  header { border-bottom:1px solid var(--border); padding:1rem 2rem; display:flex; align-items:center; justify-content:space-between; background:var(--surface); }
+  .logo { font-family:var(--mono); font-size:1rem; color:var(--accent); letter-spacing:0.08em; }
+  .logo span { color:var(--accent2); }
+  .back-btn { font-family:var(--mono); font-size:0.72rem; color:var(--muted); text-decoration:none; border:1px solid var(--border); padding:0.4rem 0.9rem; border-radius:2px; transition:all 0.2s; }
+  .back-btn:hover { color:var(--accent); border-color:var(--accent); }
+  .container { max-width:1100px; margin:0 auto; padding:2rem; }
+
+  /* ── Verdict Hero ── */
+  .verdict-hero {
+    padding:2rem 2.5rem; margin-bottom:1.5rem; border-radius:4px;
+    border:1px solid; display:flex; align-items:center; justify-content:space-between;
+  }
+  .vh-PHISHING        { border-color:rgba(255,75,110,0.5); background:rgba(255,75,110,0.06); }
+  .vh-LIKELY_PHISHING { border-color:rgba(255,75,110,0.3); background:rgba(255,75,110,0.04); }
+  .vh-SUSPICIOUS      { border-color:rgba(255,184,0,0.4); background:rgba(255,184,0,0.04); }
+  .vh-CLEAN           { border-color:rgba(0,255,135,0.3); background:rgba(0,255,135,0.04); }
+  .verdict-label { font-family:var(--mono); font-size:0.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem; }
+  .verdict-text { font-family:var(--mono); font-size:2rem; font-weight:700; letter-spacing:0.05em; }
+  .v-c-PHISHING        { color:var(--red); }
+  .v-c-LIKELY_PHISHING { color:#ff8a9f; }
+  .v-c-SUSPICIOUS      { color:var(--amber); }
+  .v-c-CLEAN           { color:var(--green); }
+  .score-circle {
+    width:90px; height:90px; border-radius:50%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    border:2px solid;
+  }
+  .sc-PHISHING        { border-color:var(--red); }
+  .sc-LIKELY_PHISHING { border-color:#ff8a9f; }
+  .sc-SUSPICIOUS      { border-color:var(--amber); }
+  .sc-CLEAN           { border-color:var(--green); }
+  .score-num { font-family:var(--mono); font-size:1.8rem; font-weight:700; line-height:1; }
+  .score-sub { font-family:var(--mono); font-size:0.55rem; color:var(--muted); margin-top:2px; }
+
+  /* ── Grid ── */
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-bottom:1.2rem; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.2rem; margin-bottom:1.2rem; }
+  .panel { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:1.4rem; }
+  .panel-title { font-family:var(--mono); font-size:0.68rem; color:var(--accent); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:1.2rem; padding-bottom:0.7rem; border-bottom:1px solid var(--border); }
+
+  /* ── Meta table ── */
+  .meta-table { width:100%; font-size:0.82rem; border-collapse:collapse; }
+  .meta-table td { padding:0.45rem 0; border-bottom:1px solid rgba(30,36,51,0.4); vertical-align:top; }
+  .meta-table td:first-child { color:var(--muted); width:38%; font-size:0.75rem; font-family:var(--mono); padding-right:1rem; }
+  .meta-table td:last-child { color:var(--text); word-break:break-all; }
+
+  /* ── Auth badges ── */
+  .auth-row { display:flex; gap:0.8rem; flex-wrap:wrap; }
+  .auth-badge { padding:0.4rem 1rem; border-radius:2px; font-family:var(--mono); font-size:0.72rem; letter-spacing:0.06em; border:1px solid; }
+  .auth-pass  { background:rgba(0,255,135,0.08); color:var(--green); border-color:rgba(0,255,135,0.2); }
+  .auth-fail  { background:rgba(255,75,110,0.08); color:var(--red); border-color:rgba(255,75,110,0.2); }
+  .auth-warn  { background:rgba(255,184,0,0.08); color:var(--amber); border-color:rgba(255,184,0,0.2); }
+  .auth-unk   { background:rgba(107,120,151,0.1); color:var(--muted); border-color:rgba(107,120,151,0.2); }
+
+  /* ── Findings ── */
+  .finding-item { padding:0.7rem 0.9rem; margin-bottom:0.5rem; border-radius:3px; border-left:3px solid; font-size:0.83rem; background:rgba(255,255,255,0.02); }
+  .sev-CRITICAL { border-color:var(--red); }
+  .sev-HIGH     { border-color:#ff7a8a; }
+  .sev-MEDIUM   { border-color:var(--amber); }
+  .sev-LOW      { border-color:var(--muted); }
+  .sev-badge { font-family:var(--mono); font-size:0.6rem; padding:1px 6px; border-radius:2px; margin-right:8px; }
+  .sb-CRITICAL { background:rgba(255,75,110,0.15); color:var(--red); }
+  .sb-HIGH     { background:rgba(255,122,138,0.12); color:#ff8a9f; }
+  .sb-MEDIUM   { background:rgba(255,184,0,0.1); color:var(--amber); }
+  .sb-LOW      { background:rgba(107,120,151,0.1); color:var(--muted); }
+  .cat-tag { font-family:var(--mono); font-size:0.58rem; color:var(--muted); margin-left:8px; }
+
+  /* ── IOC list ── */
+  .ioc-url { font-family:var(--mono); font-size:0.7rem; color:var(--muted); padding:0.35rem 0.6rem; background:var(--surface); border-radius:2px; margin-bottom:4px; word-break:break-all; border:1px solid var(--border); }
+  .ioc-tag { font-family:var(--mono); font-size:0.65rem; padding:2px 8px; border-radius:2px; display:inline-block; margin:2px; background:rgba(0,212,255,0.08); color:var(--accent); border:1px solid rgba(0,212,255,0.15); }
+
+  /* ── MITRE ── */
+  .mitre-item { display:flex; align-items:center; gap:0.8rem; padding:0.7rem 0; border-bottom:1px solid rgba(30,36,51,0.4); }
+  .mitre-id { font-family:var(--mono); font-size:0.75rem; color:var(--accent); min-width:80px; }
+  .mitre-name { font-size:0.82rem; }
+  .mitre-link { font-family:var(--mono); font-size:0.62rem; color:var(--muted); text-decoration:none; margin-left:auto; }
+  .mitre-link:hover { color:var(--accent); }
+
+  /* ── URL table ── */
+  .url-row { padding:0.6rem 0.8rem; margin-bottom:4px; background:var(--surface); border-radius:3px; border:1px solid var(--border); font-size:0.78rem; }
+  .url-domain { font-family:var(--mono); font-size:0.72rem; color:var(--accent); margin-bottom:0.3rem; word-break:break-all; }
+  .url-flags { display:flex; flex-wrap:wrap; gap:4px; margin-top:0.3rem; }
+  .url-flag { font-family:var(--mono); font-size:0.6rem; padding:1px 7px; border-radius:2px; background:rgba(255,75,110,0.1); color:#ff8a9f; border:1px solid rgba(255,75,110,0.15); }
+  .url-clean { color:var(--green); font-family:var(--mono); font-size:0.68rem; }
+
+  /* ── Summary counters ── */
+  .summary-row { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:1.2rem; }
+  .summ-box { background:var(--surface); border:1px solid var(--border); padding:0.8rem; border-radius:3px; text-align:center; }
+  .summ-val { font-family:var(--mono); font-size:1.4rem; }
+  .summ-lbl { font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-top:2px; }
+
+  .report-id { font-family:var(--mono); font-size:0.7rem; color:var(--muted); margin-bottom:1rem; }
+
+  @media(max-width:700px) {
+    .grid2,.grid3 { grid-template-columns:1fr; }
+    .summary-row { grid-template-columns:repeat(2,1fr); }
+    .verdict-hero { flex-direction:column; gap:1rem; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">PHISH<span>ANALYZER</span></div>
+  <a href="/" class="back-btn">← DASHBOARD</a>
+</header>
+
+<div class="container">
+  <div class="report-id">REPORT ID: {{ report.report_id }} &nbsp;|&nbsp; {{ report.generated_at[:19].replace('T',' ') }} UTC</div>
+
+  {% set verdict = report.threat_assessment.verdict %}
+  {% set score   = report.threat_assessment.score %}
+  {% set summ    = report.threat_assessment.summary %}
+
+  <!-- Verdict Hero -->
+  <div class="verdict-hero vh-{{ verdict }}">
+    <div>
+      <div class="verdict-label">THREAT VERDICT</div>
+      <div class="verdict-text v-c-{{ verdict }}">{{ verdict.replace('_',' ') }}</div>
+      <div style="margin-top:0.5rem;font-size:0.82rem;color:var(--muted);">
+        {{ summ.total_findings }} findings &nbsp;·&nbsp;
+        {{ summ.url_count }} URLs &nbsp;·&nbsp;
+        {{ summ.attachment_count }} attachments &nbsp;·&nbsp;
+        {{ summ.ioc_count }} IOCs
+      </div>
+    </div>
+    <div class="score-circle sc-{{ verdict }}">
+      <div class="score-num v-c-{{ verdict }}">{{ score }}</div>
+      <div class="score-sub">/ 100</div>
+    </div>
+  </div>
+
+  <!-- Summary Counters -->
+  <div class="summary-row">
+    <div class="summ-box"><div class="summ-val" style="color:var(--red)">{{ summ.critical_count }}</div><div class="summ-lbl">Critical</div></div>
+    <div class="summ-box"><div class="summ-val" style="color:#ff8a9f">{{ summ.high_count }}</div><div class="summ-lbl">High</div></div>
+    <div class="summ-box"><div class="summ-val" style="color:var(--amber)">{{ summ.medium_count }}</div><div class="summ-lbl">Medium</div></div>
+    <div class="summ-box"><div class="summ-val" style="color:var(--muted)">{{ summ.low_count }}</div><div class="summ-lbl">Low</div></div>
+  </div>
+
+  <!-- Email Meta + Auth -->
+  <div class="grid2">
+    <div class="panel">
+      <div class="panel-title">▶ EMAIL METADATA</div>
+      <table class="meta-table">
+        {% set m = report.email_metadata %}
+        <tr><td>Subject</td><td>{{ m.subject or '—' }}</td></tr>
+        <tr><td>From</td><td>{{ m.sender_name }} &lt;{{ m.sender_email }}&gt;</td></tr>
+        <tr><td>Reply-To</td><td>{{ m.reply_to or '—' }}</td></tr>
+        <tr><td>Date</td><td>{{ m.date or '—' }}</td></tr>
+        <tr><td>Message-ID</td><td>{{ m.message_id or '—' }}</td></tr>
+        <tr><td>X-Mailer</td><td>{{ m.x_mailer or '—' }}</td></tr>
+        <tr><td>Originating IP</td><td>{{ m.x_originating_ip or '—' }}</td></tr>
+      </table>
+    </div>
+    <div class="panel">
+      <div class="panel-title">▶ AUTHENTICATION</div>
+      {% set ha = report.header_analysis %}
+      <div class="auth-row" style="margin-bottom:1.2rem;">
+        {% set spf_s = ha.spf.status %}
+        <div class="auth-badge {% if spf_s == 'pass' %}auth-pass{% elif spf_s in ['fail','softfail'] %}auth-fail{% elif spf_s == 'unknown' %}auth-unk{% else %}auth-warn{% endif %}">
+          SPF: {{ spf_s.upper() }}
+        </div>
+        {% set dkim_s = ha.dkim.status %}
+        <div class="auth-badge {% if dkim_s == 'pass' %}auth-pass{% elif dkim_s == 'fail' %}auth-fail{% elif dkim_s == 'unknown' %}auth-unk{% else %}auth-warn{% endif %}">
+          DKIM: {{ dkim_s.upper() }}
+        </div>
+        {% set dmarc_s = ha.dmarc.status %}
+        <div class="auth-badge {% if dmarc_s == 'pass' %}auth-pass{% elif dmarc_s == 'fail' %}auth-fail{% elif dmarc_s == 'unknown' %}auth-unk{% else %}auth-warn{% endif %}">
+          DMARC: {{ dmarc_s.upper() }}
+        </div>
+      </div>
+
+      <table class="meta-table">
+        <tr>
+          <td>Reply-To Mismatch</td>
+          <td style="color:{% if ha.reply_to_mismatch.mismatch %}var(--red){% else %}var(--green){% endif %}">
+            {% if ha.reply_to_mismatch.mismatch %}⚠ YES — {{ ha.reply_to_mismatch.replyto_domain }}{% else %}✓ No{% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td>Display Name Spoof</td>
+          <td style="color:{% if ha.display_name_spoof.spoofed %}var(--red){% else %}var(--green){% endif %}">
+            {% if ha.display_name_spoof.spoofed %}⚠ Impersonating {{ ha.display_name_spoof.brand }}{% else %}✓ No{% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td>Received Hops</td>
+          <td style="color:{% if ha.received_chain.anomaly %}var(--amber){% else %}var(--text){% endif %}">
+            {{ ha.received_chain.hop_count }}{% if ha.received_chain.anomaly %} ⚠ anomalous{% endif %}
+          </td>
+        </tr>
+        {% if ha.received_chain.unique_ips %}
+        <tr>
+          <td>IPs in Chain</td>
+          <td style="font-family:var(--mono);font-size:0.7rem;">{{ ha.received_chain.unique_ips | join(', ') }}</td>
+        </tr>
+        {% endif %}
+      </table>
+    </div>
+  </div>
+
+  <!-- Findings -->
+  <div class="panel" style="margin-bottom:1.2rem;">
+    <div class="panel-title">▶ DETAILED FINDINGS ({{ report.findings | length }})</div>
+    {% if report.findings %}
+      {% for f in report.findings %}
+      <div class="finding-item sev-{{ f.severity }}">
+        <span class="sev-badge sb-{{ f.severity }}">{{ f.severity }}</span>
+        {{ f.finding }}
+        <span class="cat-tag">[{{ f.category }}]</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="color:var(--muted);font-family:var(--mono);font-size:0.8rem;">No significant findings detected.</div>
+    {% endif %}
+  </div>
+
+  <!-- IOCs + MITRE -->
+  <div class="grid2">
+    <div class="panel">
+      <div class="panel-title">▶ EXTRACTED IOCs</div>
+      {% set iocs = report.iocs %}
+      <div style="margin-bottom:0.8rem;">
+        {% if iocs.ips %}<span class="ioc-tag">{{ iocs.ips|length }} IPs</span>{% endif %}
+        {% if iocs.emails %}<span class="ioc-tag">{{ iocs.emails|length }} Emails</span>{% endif %}
+        {% if iocs.domains %}<span class="ioc-tag">{{ iocs.domains|length }} Domains</span>{% endif %}
+        {% if iocs.md5_hashes %}<span class="ioc-tag">{{ iocs.md5_hashes|length }} MD5</span>{% endif %}
+        {% if iocs.sha256_hashes %}<span class="ioc-tag">{{ iocs.sha256_hashes|length }} SHA256</span>{% endif %}
+        {% if iocs.bitcoin_addresses %}<span class="ioc-tag">{{ iocs.bitcoin_addresses|length }} BTC</span>{% endif %}
+      </div>
+      <div style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-bottom:0.5rem;">URLS ({{ iocs.urls|length }})</div>
+      {% for url in iocs.urls[:12] %}
+        <div class="ioc-url">{{ url[:80] }}{% if url|length > 80 %}…{% endif %}</div>
+      {% else %}
+        <div style="color:var(--muted);font-size:0.8rem;">No URLs found.</div>
+      {% endfor %}
+      {% if iocs.ips %}
+      <div style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin:0.7rem 0 0.4rem;">IPs</div>
+      {% for ip in iocs.ips[:6] %}<span class="ioc-tag">{{ ip }}</span>{% endfor %}
+      {% endif %}
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">▶ MITRE ATT&CK MAPPING</div>
+      {% if report.mitre_attack %}
+        {% for m in report.mitre_attack %}
+        <div class="mitre-item">
+          <div class="mitre-id">{{ m.technique_id }}</div>
+          <div class="mitre-name">{{ m.technique_name }}</div>
+          <a href="{{ m.url }}" target="_blank" class="mitre-link">VIEW ↗</a>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="color:var(--muted);font-size:0.8rem;font-family:var(--mono);">No techniques mapped.</div>
+      {% endif %}
+
+      {% if report.attachment_analysis %}
+      <div style="margin-top:1.2rem;">
+        <div style="font-family:var(--mono);font-size:0.65rem;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.8rem;padding-bottom:0.6rem;border-bottom:1px solid var(--border);">▶ ATTACHMENTS</div>
+        {% for att in report.attachment_analysis %}
+        <div style="padding:0.6rem 0;border-bottom:1px solid rgba(30,36,51,0.4);font-size:0.8rem;">
+          <div style="font-family:var(--mono);font-size:0.72rem;margin-bottom:0.3rem;">{{ att.filename }}</div>
+          <div style="font-size:0.7rem;color:var(--muted);">{{ att.size_bytes }} bytes &nbsp;·&nbsp; {{ att.extension }}</div>
+          {% if att.risk_flags %}
+            {% for flag in att.risk_flags %}
+            <div style="color:var(--red);font-size:0.72rem;margin-top:2px;">⚠ {{ flag }}</div>
+            {% endfor %}
+          {% else %}
+            <div style="color:var(--green);font-size:0.72rem;margin-top:2px;">✓ No threats detected</div>
+          {% endif %}
+          <div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:3px;">SHA256: {{ att.sha256[:32] }}…</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- URL Analysis -->
+  {% if report.url_analysis %}
+  <div class="panel" style="margin-bottom:1.2rem;">
+    <div class="panel-title">▶ URL ANALYSIS ({{ report.url_analysis | length }})</div>
+    {% for ur in report.url_analysis %}
+    <div class="url-row">
+      <div class="url-domain">{{ ur.domain or ur.url[:60] }}</div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:0.3rem;">
+        {% if ur.is_https %}<span style="color:var(--green)">HTTPS</span>{% else %}<span style="color:var(--amber)">HTTP</span>{% endif %}
+        {% if ur.is_ip_url %}&nbsp;·&nbsp;<span style="color:var(--red)">IP-based</span>{% endif %}
+        {% if ur.is_shortener %}&nbsp;·&nbsp;<span style="color:var(--amber)">Shortener</span>{% endif %}
+        {% if ur.is_homograph %}&nbsp;·&nbsp;<span style="color:var(--red)">Homograph</span>{% endif %}
+        &nbsp;·&nbsp; score: {{ ur.risk_score }}
+      </div>
+      {% if ur.risk_flags %}
+      <div class="url-flags">
+        {% for f in ur.risk_flags %}<span class="url-flag">{{ f[:60] }}</span>{% endfor %}
+      </div>
+      {% else %}
+        <span class="url-clean">✓ No flags</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+</body>
+</html>

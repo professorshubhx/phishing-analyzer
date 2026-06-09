@@ -1,0 +1,48 @@
+═════════════════════════════════════════════════════════════════
+  PHISHING EMAIL ANALYSIS REPORT
+  Report ID : PHX-20260607-180156
+  Generated : 2026-06-07T18:01:56.315622Z
+═════════════════════════════════════════════════════════════════
+
+  ▶ VERDICT: LIKELY_PHISHING  |  THREAT SCORE: 60/100
+
+═════════════════════════════════════════════════════════════════
+
+[EMAIL METADATA]
+  Subject        : Re: You have won an Ninja Foodi XL Pro Grill & Griddle
+  From           : Ninja Foodi XL Pro Grill & Griddle Unlocked <ngcxl@ganmorfan.com>
+  Reply-To       : newsletter@ganmorfan.com
+  Date           : Thu, 03 Nov 2022 15:55:41 +0000
+  Message-ID     : <e6480c33-3668-49ab-8b88-60b75dc7c9a7@DM6NAM04FT003.eop-NAM04.prod.protection.outlook.com>
+  X-Mailer       : 
+  Orig IP        : 
+
+[AUTHENTICATION RESULTS]
+  SPF   : NONE
+  DKIM  : FAIL
+  DMARC : NONE
+
+[FINDINGS]
+  [01] [HIGH    ] [Authentication ] SPF check NONE — sender domain may be spoofed
+  [02] [HIGH    ] [Authentication ] DKIM FAIL — email integrity not verified
+  [03] [MEDIUM  ] [Authentication ] DMARC NONE — policy not enforced
+  [04] [MEDIUM  ] [URL            ] [t.co] URL shortener detected: t.co
+  [05] [MEDIUM  ] [URL            ] [t.co] URL shortener detected: t.co
+
+[EXTRACTED IOCs]
+  URLs    : 2
+  IPs     : 0
+  Domains : 0
+  Emails  : 0
+    → https://t.co/Evg8zw1y0g
+    → https://t.co/j002WW0bMW
+
+[MITRE ATT&CK MAPPING]
+  T1566.001 — Phishing: Spearphishing Attachment
+    https://attack.mitre.org/techniques/T1566/001
+  T1566.002 — Phishing: Spearphishing Link
+    https://attack.mitre.org/techniques/T1566/002
+
+═════════════════════════════════════════════════════════════════
+  END OF REPORT — Phishing Email Analyzer v2.0
+═════════════════════════════════════════════════════════════════
